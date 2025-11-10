@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "EstacionaCareca.Data": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="EstacionaCareca.Data/EstacionaCareca.Data.csproj" />
+  <Project Path="EstacionaCareca.Shared/EstacionaCareca.Shared.csproj" />
+</Solution>
