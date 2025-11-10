@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Context\" />
+    <ProjectReference Include="..\EstacionaCareca.Shared\EstacionaCareca.Shared.csproj" />
   </ItemGroup>
 
 </Project>
