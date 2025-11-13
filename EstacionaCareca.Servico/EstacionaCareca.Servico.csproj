@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\EstacionaCareca.Data\EstacionaCareca.Data.csproj" />
+    <ProjectReference Include="..\EstacionaCareca.Shared\EstacionaCareca.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
