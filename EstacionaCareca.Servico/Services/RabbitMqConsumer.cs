@@ -24,22 +24,22 @@ public class RabbitMqConsumer
         };
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task<Task<object?>> StartAsync(CancellationToken cancellationToken)
     {
-        var connection = _factory.CreateConnection();
-        var channel = connection.CreateModel();
+        var connection = await _factory.CreateConnectionAsync();
+        var channel = await connection.CreateChannelAsync();
 
-        channel.QueueDeclare(queue: Configuration.RabbitMqQueue,
-                             durable: true,
-                             exclusive: false,
-                             autoDelete: false,
-                             arguments: null);
+        await channel.QueueDeclareAsync(queue: Configuration.RabbitMqQueue,
+                            durable: true,
+                            exclusive: false,
+                            autoDelete: false,
+                            arguments: null);
 
         // Process one message at a time per consumer
-        channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+        await channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false);
 
-        var consumer = new EventingBasicConsumer(channel);
-        consumer.Received += async (sender, ea) =>
+        var consumer = new AsyncEventingBasicConsumer(channel);
+        consumer.ReceivedAsync += async (sender, ea) =>
         {
             try
             {
@@ -48,7 +48,7 @@ public class RabbitMqConsumer
 
                 if (msg == null)
                 {
-                    channel.BasicAck(ea.DeliveryTag, false);
+                    await channel.BasicAckAsync(ea.DeliveryTag, false);
                     return;
                 }
 
@@ -67,16 +67,16 @@ public class RabbitMqConsumer
                     // Decide política: aqui fazemos ack para evitar retry infinito. Para retry, usar Nack e requeue=true com contador.
                 }
 
-                channel.BasicAck(ea.DeliveryTag, false);
+                await channel.BasicAckAsync(ea.DeliveryTag, false);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"[Consumer] Erro genérico: {ex.Message}");
-                try { channel.BasicAck(ea.DeliveryTag, false); } catch { }
+                try { await channel.BasicAckAsync(ea.DeliveryTag, false); } catch { }
             }
         };
 
-        channel.BasicConsume(queue: Configuration.RabbitMqQueue,
+        await channel.BasicConsumeAsync(queue: Configuration.RabbitMqQueue,
                              autoAck: false,
                              consumer: consumer);
 
@@ -86,8 +86,8 @@ public class RabbitMqConsumer
         {
             try
             {
-                channel.Close();
-                connection.Close();
+                channel.CloseAsync();
+                connection.CloseAsync();
             }
             catch { }
             tcs.TrySetResult(null);

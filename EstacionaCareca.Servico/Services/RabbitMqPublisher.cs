@@ -1,8 +1,7 @@
-using System.Text;
-using System.Text.Json;
-using RabbitMQ.Client;
-using EstacionaCareca.Shared.DTOs;
 using EstacionaCareca.Shared.Configuration;
+using EstacionaCareca.Shared.DTOs;
+using RabbitMQ.Client;
+using System.Text.Json;
 
 namespace EstacionaCareca.Servico.Services;
 
@@ -21,25 +20,28 @@ public class RabbitMqPublisher
         };
     }
 
-    public Task PublishAsync(CameraMessageDto message)
+    public async Task<Task> PublishAsync(CameraMessageDto message)
     {
         var body = JsonSerializer.SerializeToUtf8Bytes(message);
 
         // Conexão curta para simplicidade; para produção prefira singleton/reuso de conexão e canal.
-        using var connection = _factory.CreateConnection();
-        using var channel = connection.CreateModel();
+        using var connection = await _factory.CreateConnectionAsync();
+        using var channel = await connection.CreateChannelAsync();
 
-        channel.QueueDeclare(queue: Configuration.RabbitMqQueue,
+        await channel.QueueDeclareAsync(queue: Configuration.RabbitMqQueue,
                              durable: true,
                              exclusive: false,
                              autoDelete: false,
                              arguments: null);
 
-        var properties = channel.CreateBasicProperties();
-        properties.Persistent = true;
+        var properties = new BasicProperties
+        {
+            Persistent = true
+        };
 
-        channel.BasicPublish(exchange: string.Empty,
+        await channel.BasicPublishAsync(exchange: string.Empty,
                              routingKey: Configuration.RabbitMqQueue,
+                             mandatory: false,
                              basicProperties: properties,
                              body: body);
 
