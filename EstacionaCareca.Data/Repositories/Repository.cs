@@ -11,8 +11,11 @@ public class Repository<T>(SqlConnection connection) where T : class
     public T GetById(int id)
         => connection.Get<T>(id);
 
-    public void Create(T model)
-        => connection.Insert(model);
+    public T Create(T model)
+    {
+        var id = connection.Insert(model);
+        return connection.Get<T>((int)id);
+    }
 
     public void Update(T model)
     {
